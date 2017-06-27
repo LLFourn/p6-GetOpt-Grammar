@@ -21,6 +21,15 @@ grammar GetOpt::Grammar {
         { self.exception: "$message: ‘{$<str>.Str}’", match => $<str> }
     }
 
+    method missing(:$option, :$hint, :$type, :$match = self.MATCH) {
+        GetOpt::Grammar::X::Missing.new(
+            :$match,
+            :$option,
+            :$type,
+            :$hint,
+        ).throw;
+    }
+
     token TOP(%opts) {
         :my %res;
         :my @opts := %opts<opts>;
@@ -28,11 +37,11 @@ grammar GetOpt::Grammar {
         :my @shortnames = @opts.map: { .<shortname> // Empty };
         (
             $<opt>=(
-                | <.bogus("Unknown option")>
-                | '--' » {note "here"} $<name>=@longnames
-                | '-'  » $<shortname>=@shortnames
+                | '--' « $<name>=@longnames
+                | '-'  « $<shortname>=@shortnames
+                | {} <.bogus("Unknown option")>
             )
-            ['=' || <.sep> ]
+            ['=' || <.sep> || $ ]
             {}
             <value(@opts,%res)>
         )* % <.sep>
@@ -41,7 +50,12 @@ grammar GetOpt::Grammar {
 
     token sep  { \x[1f] }
 
-    token str { <-[\x[1f]]>+ }
+    token str {
+        [
+            || <-[\x[1f]]>+
+            || <.missing()>
+        ]
+    }
 
     method value(@opts, %res) {
         my $opt = do given self.MATCH<opt> {
@@ -52,9 +66,9 @@ grammar GetOpt::Grammar {
         my $cursor := self.'!cursor_init'(self.orig(), :p(self.pos));
         my $new-cursor;
         if $opt<match> -> $match {
-            $new-cursor := try $match.($cursor);
+             $new-cursor := try $match.($cursor);
         } else {
-            my $type = $opt<type> || 'str';
+            my $type = $opt<type> || 'bool';
             $new-cursor := $cursor."$type"();
         }
 

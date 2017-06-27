@@ -2,8 +2,18 @@ use Test;
 
 use GetOpt::Grammar;
 
-my @args = <--bool-arg --arg foo>;
+my %opts = (
+    opts => (
+        {
+            name => 'arg',
+            shortname => 'a',
+            type => 'bool',
+        },
+    ),
+);
 
-}
+my $parser = GetOpt::Grammar.new: :%opts;
 
-is-deeply MyOpts.get-opts(@args), { :bool-arg, :arg<foo> }
+my @args = <--arg>;
+
+note $parser.get-opts(@args);

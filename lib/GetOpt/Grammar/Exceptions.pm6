@@ -38,3 +38,16 @@ class GetOpt::Grammar::X is Exception is rw {
     }
 
 }
+
+class GetOpt::Grammar::X::Missing is GetOpt::Grammar::X {
+    has $.hint;
+    has $.option;
+    has $.type;
+
+    method message {
+        "Missing $!type argument for $!option";
+    }
+    method markers {
+        ${ :after(colored("$.hint↩","green")), :$.match }
+    }
+}
