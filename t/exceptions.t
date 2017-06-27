@@ -1,10 +1,16 @@
 use Test;
 use GetOpt::Grammar;
 
-class MyOpts is GetOpt::Grammar {
-    token opt:sym<arg> {
-        <sym> <arg>
-    }
-}
+my %opts = (
+    opts => (
+        {
+            name => 'arg',
+            shortname => 'a',
+            doc => 'an argument'
+        },
+    ),
+);
 
-MyOpts.get-opts(<--arg1 arg1.txt>);
+my $parser = GetOpt::Grammar.new: :%opts;
+
+note $parser.get-opts(<--arg1 arg1.txt>, command => 'goof');

@@ -22,10 +22,15 @@ sub apply-markers($orig, @markers) {
 class GetOpt::Grammar::X is Exception is rw {
     has Match:D $.match is required;
     has $.message;
+    has $.command;
+    has $.usage;
 
     method gist {
-        my $str = apply-markers($!match.orig.subst("\x[1f]"," ", :g), self.markers);
-        "$.message\n$str"
+        my $command-line =
+          ($.command andthen "$_ ") ~
+          ~ apply-markers($!match.orig.subst("\x[1f]"," ", :g), self.markers);
+
+        "$.message\n$command-line" ~ ($.usage andthen "\n$_")
     }
 
     method markers {
